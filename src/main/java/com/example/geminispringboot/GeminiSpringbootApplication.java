@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class GeminiSpringbootApplication {
 
     //first commit !
+    //second
     public static void main(String[] args) {
         SpringApplication.run(GeminiSpringbootApplication.class, args);
     }
