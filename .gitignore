@@ -16,7 +16,6 @@ buildNumber.properties
 *.iws
 *.ipr
 .vscode/
-.DS_Store
 
 # Logs
 logs/
