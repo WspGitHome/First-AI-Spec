@@ -1,0 +1,9 @@
+server:
+  port: 18881
+  servlet:
+    context-path: /app-secret-path-a7b3c9d8
+
+app:
+
+  test-property: hello-world
+  allowed-names:
