@@ -7,6 +7,7 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **Framework**: Spring Boot 2.7.18
 - **Language**: Java 8
 - **Build Tool**: Maven
+- **Security**: Spring Security (session-based authentication)
 - **Utilities**:
   - Hutool 5.8.26 (Java utility library)
   - Apache POI 5.2.3 (Excel processing)
@@ -35,6 +36,7 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **Configuration Management**: Externalized configuration via `application.yml` and `@ConfigurationProperties`
 - **Dependency Injection**: Spring's `@Autowired` for loose coupling
 - **RESTful API**: Stateless operations with multipart file upload/download
+- **Session-Based Authentication**: Spring Security with HTTP session management (30-minute timeout)
 
 ### Testing Strategy
 - Unit tests using Spring Boot Test framework
@@ -86,11 +88,26 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **No External APIs**: No integration with external services (HttpClient included but not actively used in current code)
 
 ## API Endpoints
-- **POST** `/app-secret-path-a7b3c9d8/process-roster` - Process duty roster and attendance files
-- **GET** `/app-secret-path-a7b3c9d8/download/{transactionId}` - Download processed attendance file
+- **GET** `/app-secret-path-a7b3c9d8/` - Main web interface (requires authentication)
+- **GET** `/app-secret-path-a7b3c9d8/login` - Login page (public)
+- **POST** `/app-secret-path-a7b3c9d8/login` - Login authentication (public)
+- **POST** `/app-secret-path-a7b3c9d8/logout` - Logout (requires authentication)
+- **POST** `/app-secret-path-a7b3c9d8/process-roster` - Process duty roster and attendance files (requires authentication)
+- **GET** `/app-secret-path-a7b3c9d8/download/{transactionId}` - Download processed attendance file (requires authentication)
 - Uses transaction ID pattern for file download with memory cache cleanup
+
+## Security
+- **Authentication**: Session-based authentication with username/password
+- **Default Credentials**: username `admin`, password `admin` (configurable in `application.yml`)
+- **Session Timeout**: 30 minutes of inactivity
+- **Protected Resources**: All endpoints except `/login`, `/css/**`, `/js/**`, `/images/**`
+- **Password Storage**: Plaintext with NoOpPasswordEncoder (acceptable for internal tool behind firewall)
+- **Public Access**: Login page and static resources (CSS, JS) are accessible without authentication
 
 ## Configuration Properties
 - `app.test-property` - Test configuration property
 - `app.allowed-names` - List of allowed names (for validation/filtering)
+- `spring.security.user.name` - Login username (default: `admin`)
+- `spring.security.user.password` - Login password (default: `admin`)
+- `server.servlet.session.timeout` - Session timeout duration (default: `30m`)
 - Shift mappings hardcoded in `AppProperties` class (not externalized)

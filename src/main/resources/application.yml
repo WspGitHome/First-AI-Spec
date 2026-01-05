@@ -1,9 +1,17 @@
 server:
   port: 18881
   servlet:
+    session:
+      timeout: 30m  # Session timeout: 30 minutes
     context-path: /app-secret-path-a7b3c9d8
 
 app:
-
   test-property: hello-world
   allowed-names:
+
+# Security configuration
+spring:
+  security:
+    user:
+      name: admin
+      password: "{noop}admin"  # {noop} means no encoding (plaintext for internal tool)
