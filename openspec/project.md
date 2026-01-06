@@ -14,6 +14,7 @@ A Spring Boot application that automates attendance tracking and duty roster man
   - Apache Commons Lang3 3.20.0
   - Apache HttpClient 4.5.14
 - **Testing**: Spring Boot Starter Test
+- **Development Tools**: Maven, Git, OpenSpec for spec-driven development
 
 ## Project Conventions
 
@@ -23,11 +24,15 @@ A Spring Boot application that automates attendance tracking and duty roster man
   - `service/` - Business logic layer
   - `model/` - Data transfer objects and domain models
   - `config/` - Configuration and properties
+  - `util/` - Utility classes and helpers
 - **Naming Conventions**:
   - Classes: PascalCase (e.g., `OrchestrationService`)
   - Methods: camelCase (e.g., `processFiles`)
+  - Constants: UPPER_SNAKE_CASE (e.g., `DEFAULT_TIMEOUT`)
+  - Variables: camelCase (e.g., `employeeName`)
   - Chinese comments and log messages are acceptable (domain-specific)
 - **Language**: Code in English, comments and logs can include Chinese for domain clarity
+- **Documentation**: Javadoc for public methods, inline comments for complex logic
 
 ### Architecture Patterns
 - **Layered Architecture**: Controller → Service → Model
@@ -37,16 +42,26 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **Dependency Injection**: Spring's `@Autowired` for loose coupling
 - **RESTful API**: Stateless operations with multipart file upload/download
 - **Session-Based Authentication**: Spring Security with HTTP session management (30-minute timeout)
+- **File Processing Pipeline**: Sequential processing of Excel files with validation and error handling
 
 ### Testing Strategy
 - Unit tests using Spring Boot Test framework
+- Integration tests for API endpoints
 - Test files located in `src/test/java/` mirroring main package structure
 - Test resources in `src/test/resources/`
 - Example: `ConfigReaderTest.java` for configuration validation
+- Mock objects for external dependencies in unit tests
+- Test coverage should aim for 80%+ for critical business logic
 
 ### Git Workflow
-- Not currently defined (to be documented)
-- Commit conventions: TBD
+- **Branching Strategy**: Feature branches from `main`, pull requests for merging
+- **Commit Conventions**:
+  - Imperative mood: "Add feature" not "Added feature"
+  - Prefix with scope when relevant: "api: add new endpoint", "auth: fix login bug"
+  - Maximum 72 characters for subject line
+  - Separate subject from body with blank line when adding details
+- **Pull Requests**: Required for all changes, minimum 1 review
+- **Versioning**: Semantic versioning (MAJOR.MINOR.PATCH)
 
 ## Domain Context
 
@@ -54,12 +69,12 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **Duty Roster Management**: Schedules assigning staff to shifts (上/白/下/夜/乘/休)
 - **Attendance Tracking**: Monthly attendance records tracking shift assignments per day
 - **Shift Types**:
-  - 上/白 (白班)
-  - 下 (大夜)
-  - 夜 (小夜)
-  - 乘 (乘, may span 2 days)
-  - 休 (休息)
-  - 下 can span to next day
+  - 上/白 (白班) - Day shift
+  - 下 (大夜) - Night shift (may span to next day)
+  - 夜 (小夜) - Evening shift
+  - 乘 (乘) - Special shift that may span 2 days
+  - 休 (休息) - Rest day
+  - Shifts can span multiple days, requiring special handling
 
 ### Key Workflows
 1. **Multi-File Processing**: Process multiple duty roster Excel files for different days
@@ -67,12 +82,16 @@ A Spring Boot application that automates attendance tracking and duty roster man
 3. **Schedule Parsing**: Parse duty rosters with shift mapping normalization
 4. **Batch Updates**: Collect all updates and apply in single batch operation
 5. **Automatic Rest Assignment**: Assign "休" to unassigned staff on each day
+6. **File Validation**: Validate Excel file format and content before processing
+7. **Result Generation**: Create updated attendance sheets with processing results
 
 ### Important Rules
 - Files must be processed in day order (sorted)
 - "乘" and "下" shifts span multiple days
 - Unassigned staff automatically marked as "休" (rest)
 - Month boundary validation prevents out-of-range updates
+- Shift mapping normalization (e.g., "小夜" → "上") for consistency
+- Employee names must match between duty roster and attendance sheet
 
 ## Important Constraints
 - **Memory Constraints**: Excel files processed entirely in memory (suitable for typical attendance sheets, not massive datasets)
@@ -80,12 +99,15 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **File Format**: Input files must be valid Excel format (.xlsx)
 - **Shift Mapping**: Hardcoded shift type mappings in `AppProperties` (e.g., "小夜" → "上")
 - **Port Configuration**: Application runs on port 18881 with custom context path
+- **Session Management**: 30-minute session timeout for security
+- **File Size Limits**: Processing limited by available memory
 
 ## External Dependencies
 - **Google Gemini**: Referenced in project name but integration details not yet visible in current codebase
 - **Excel Files**: User-provided Excel files as input (duty rosters and attendance templates)
 - **No Database**: Currently uses in-memory processing with no persistent database layer
-- **No External APIs**: No integration with external services (HttpClient included but not actively used in current code)
+- **No External APIs**: No integration with external services (HttpClient included but not actively used in current codebase)
+- **Static Resources**: CSS, JavaScript files for web interface
 
 ## API Endpoints
 - **GET** `/app-secret-path-a7b3c9d8/` - Main web interface (requires authentication)
@@ -111,3 +133,20 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - `spring.security.user.password` - Login password (default: `admin`)
 - `server.servlet.session.timeout` - Session timeout duration (default: `30m`)
 - Shift mappings hardcoded in `AppProperties` class (not externalized)
+
+## Development Environment
+- **IDE**: IntelliJ IDEA, Eclipse, or VS Code with Java extensions
+- **JDK**: Java 8 (required for compatibility)
+- **Maven**: Version 3.6.0 or higher
+- **Git**: Version control system
+- **Testing**: JUnit 4/5 for unit tests, Spring Test for integration tests
+- **Build Commands**: `mvn clean install`, `mvn spring-boot:run`
+
+## File Structure
+- `src/main/java/` - Main application source code
+- `src/main/resources/` - Configuration files, static resources, templates
+- `src/test/java/` - Test source code
+- `src/test/resources/` - Test resources
+- `target/` - Compiled classes and packaged artifacts (Maven output)
+- `openspec/` - OpenSpec documentation and change proposals
+- `pom.xml` - Maven build configuration and dependencies
