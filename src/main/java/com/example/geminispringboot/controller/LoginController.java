@@ -36,6 +36,6 @@ public class LoginController {
             model.addAttribute("logoutMessage", "您已成功退出登录");
         }
 
-        return "forward:/login.html";
+        return "login";
     }
 }

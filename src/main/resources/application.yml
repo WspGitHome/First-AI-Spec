@@ -14,4 +14,4 @@ spring:
   security:
     user:
       name: admin
-      password: "{noop}admin"  # {noop} means no encoding (plaintext for internal tool)
+      password: "admin"  # {noop} means no encoding (plaintext for internal tool)
