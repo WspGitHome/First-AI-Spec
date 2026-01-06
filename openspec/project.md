@@ -8,11 +8,18 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **Language**: Java 8
 - **Build Tool**: Maven
 - **Security**: Spring Security (session-based authentication)
+- **Data Access:**
+    - MyBatis Plus 3.4.2
+    - MyBatis Spring Boot Starter 2.1.0
+    - PostgreSql Connector 42.5.0
+    - Druid Connection Pool 1.1.21
 - **Utilities**:
   - Hutool 5.8.26 (Java utility library)
   - Apache POI 5.2.3 (Excel processing)
   - Apache Commons Lang3 3.20.0
   - Apache HttpClient 4.5.14
+  - Lombok
+
 - **Testing**: Spring Boot Starter Test
 - **Development Tools**: Maven, Git, OpenSpec for spec-driven development
 
@@ -23,6 +30,8 @@ A Spring Boot application that automates attendance tracking and duty roster man
   - `controller/` - REST API endpoints
   - `service/` - Business logic layer
   - `model/` - Data transfer objects and domain models
+  - `dao/` - Database mapper interfaces 固定格式示例: public interface DataObjectDao extends BaseMapper<DataObject> {}
+  - `dao/service` - Database mapper service implementations 固定格式示例: @Service public class DataObjectServiceDao extends ServiceImpl<DataObjectDao, DataObject> {}
   - `config/` - Configuration and properties
   - `util/` - Utility classes and helpers
 - **Naming Conventions**:
@@ -35,7 +44,7 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **Documentation**: Javadoc for public methods, inline comments for complex logic
 
 ### Architecture Patterns
-- **Layered Architecture**: Controller → Service → Model
+- **Layered Architecture**: Controller → Service → Dao(Dao/Service) → Model
 - **Service Orchestration**: Complex workflows orchestrated through dedicated services (e.g., `OrchestrationService`)
 - **In-Memory Processing**: Excel files processed in memory without intermediate disk writes
 - **Configuration Management**: Externalized configuration via `application.yml` and `@ConfigurationProperties`
@@ -94,6 +103,16 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - Employee names must match between duty roster and attendance sheet
 
 ## Important Constraints
+- **SQL Constraints**:All SQL queries MUST be generated using objects from the MyBatis-Plus framework.
+Primary Approach: Use MyBatis-Plus QueryWrapper, LambdaQueryWrapper, or built-in methods for all database operations
+Exception Handling: If specific scenarios cannot be achieved using MyBatis-Plus objects (e.g., complex multi-table joins, custom aggregate functions, stored procedure calls), then you MUST write the corresponding mapper.xml file
+Priority: Always prefer MyBatis-Plus object-based queries first; only use XML mappings when absolutely necessary
+- **Database Connection**: 
+Default Configuration (used only when no database connection exists in project configuration):（url: `jdbc:postgresql://172.16.0.212:5432/dass2?currentSchema=other1&useUnicode=true&characterEncoding=utf8&characterSetResults=utf8`  username: `sde` password: `sde）
+Configuration Priority: Use existing database connection configuration from project files first; if none exists, use the default configuration above
+No New Databases: Do NOT create new databases, only use existing ones
+Table Scope: Business tables can only be created within the currently connected database; cross-database operations are prohibited
+Connection Reuse: The application must use the same database connection; all business tables must be stored in this database
 - **Memory Constraints**: Excel files processed entirely in memory (suitable for typical attendance sheets, not massive datasets)
 - **Java 8 Compatibility**: Code must run on Java 8 (Spring Boot 2.7.18 requirement)
 - **File Format**: Input files must be valid Excel format (.xlsx)
@@ -103,7 +122,6 @@ A Spring Boot application that automates attendance tracking and duty roster man
 - **File Size Limits**: Processing limited by available memory
 
 ## External Dependencies
-- **Google Gemini**: Referenced in project name but integration details not yet visible in current codebase
 - **Excel Files**: User-provided Excel files as input (duty rosters and attendance templates)
 - **No Database**: Currently uses in-memory processing with no persistent database layer
 - **No External APIs**: No integration with external services (HttpClient included but not actively used in current codebase)
