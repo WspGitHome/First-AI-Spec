@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册新用户 - 智能考勤表智能更新</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body class="bg-dark">
+
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-6 col-lg-4">
+                <div class="card login-card">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <h2 class="login-title">注册新用户</h2>
+                            <p class="text-muted">创建一个新账户</p>
+                        </div>
+
+                        <div id="alert-container"></div>
+
+                        <form id="register-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label"><i class="bi bi-person"></i> 用户名</label>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label"><i class="bi bi-key"></i> 密码</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label"><i class="bi bi-key-fill"></i> 确认密码</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="请再次输入密码" required>
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg">注册</button>
+                            </div>
+                        </form>
+                        <div class="text-center mt-3">
+                            <a th:href="@{/}" class="text-muted">返回首页</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const username = this.username.value;
+            const password = this.password.value;
+            const confirmPassword = this.confirmPassword.value;
+            const alertContainer = document.getElementById('alert-container');
+
+            if (password !== confirmPassword) {
+                showAlert('密码不匹配', 'danger');
+                return;
+            }
+
+            fetch(/*[[@{/api/user/register}]]*/, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            })
+            .then(response => {
+                if (response.ok) {
+                    showAlert('用户注册成功!', 'success');
+                    this.reset();
+                } else {
+                    showAlert('注册失败，请稍后重试', 'danger');
+                }
+            })
+            .catch(() => {
+                showAlert('发生错误，请稍后重试', 'danger');
+            });
+
+            function showAlert(message, type) {
+                alertContainer.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
+            }
+        });
+        /*]]>*/
+    </script>
+</body>
+</html>

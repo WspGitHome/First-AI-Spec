@@ -5,14 +5,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorAlert = document.getElementById('error-alert');
     const successAlert = document.getElementById('success-alert');
 
-    // Check URL parameters for error or logout messages
+    // Check URL parameters for logout messages
     const urlParams = new URLSearchParams(window.location.search);
-    const hasError = urlParams.has('error');
     const hasLogout = urlParams.has('logout');
 
-    if (hasError) {
-        showError('用户名或密码错误');
-    }
+    // Initial display of error/success messages is now handled by Thymeleaf server-side.
+    // The showError/showSuccess functions are kept for potential future client-side use.
 
     if (hasLogout) {
         showSuccess('您已成功退出登录');

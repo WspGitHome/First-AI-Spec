@@ -1,16 +1,14 @@
 package com.example.geminispringboot.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.example.geminispringboot.config.CustomAuthenticationFailureHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -19,13 +17,11 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Value("${spring.security.user.name:admin}")
-    private String username;
-
-    @Value("${spring.security.user.password:admin}")
-    private String password;
+    @Autowired
+    private CustomAuthenticationFailureHandler authenticationFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -33,14 +29,17 @@ public class SecurityConfig {
             .authorizeRequests(authorizeRequests ->
                 authorizeRequests
                     // Public endpoints: login page and static resources
-                    .antMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+                    .antMatchers("/login", "/css/**", "/js/**", "/images/**", "/api/user/register").permitAll()
+                    // User management endpoints
+                    // .antMatchers("/api/user/register").hasRole("ADMIN")
+                    .antMatchers("/api/user/**").authenticated()
                     // All other endpoints require authentication
                     .anyRequest().authenticated()
             )
             .formLogin(formLogin ->
                 formLogin
                     .loginPage("/login")
-                    .failureUrl("/login?error=true")
+                    .failureHandler(authenticationFailureHandler)
                     // Redirect to the root URL, which is mapped to the index page
                     .defaultSuccessUrl("/", true)
                     .permitAll()
@@ -53,34 +52,16 @@ public class SecurityConfig {
                     .invalidateHttpSession(true)
                     .permitAll()
             )
-            // Disable CSRF for API endpoints (needed for file upload)
-            .csrf(csrf -> csrf.ignoringAntMatchers("/process-roster", "/download/**"));
+            // Disable CSRF for API endpoints
+            .csrf(csrf -> csrf.ignoringAntMatchers("/process-roster", "/download/**", "/api/**"));
         return http.build();
     }
 
     /**
-     * Configure user details service with credentials from application.yml.
-     * Uses in-memory user store for simplicity (no database required).
-     * Uses NoOpPasswordEncoder for plaintext password (acceptable for internal tool).
-     */
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username(username)
-                .password(password)
-                .roles("USER")
-                .build();
-
-        return new InMemoryUserDetailsManager(user);
-    }
-
-    /**
-     * Password encoder that doesn't encrypt passwords (plaintext).
-     * Suitable for internal tools behind firewall.
-     * For production, consider using BCrypt or similar.
+     * Use BCrypt for password encoding.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 }
