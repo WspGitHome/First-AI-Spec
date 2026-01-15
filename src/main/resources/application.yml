@@ -30,7 +30,7 @@ spring:
       test-while-idle: true
   sql:
     init:
-      mode: always
+      mode: never
 logging:
   level:
     com.example.geminispringboot.dao: debug
